@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0891b2">
+  <meta name="description" content="Safety Observation Tracking App - Saudi Safety Group">
+  <title>Safety Observer Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-left">
+        <img src="/img/CAT.jpeg" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+        <div class="header-title">
+          <h1>Safety Observer</h1>
+          <span class="header-subtitle">Saudi Safety Group</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" id="searchBtn" aria-label="Search">
+          <i class="fas fa-search"></i>
+        </button>
+        <button class="header-btn" id="themeToggleBtn" aria-label="Toggle Theme" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="header-btn" id="notifBtn" aria-label="Notifications" onclick="showNotifications()">
+          <i class="fas fa-bell"></i>
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <button class="header-btn" id="profileBtn" aria-label="Profile" onclick="showProfile()">
+          <i class="fas fa-user-circle"></i>
+        </button>
+        <button class="header-btn logout-btn" id="logoutBtn" aria-label="Logout" onclick="logout()" title="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="user-points-bar" id="userPointsBar" style="display:none;">
+      <div class="points-info">
+        <span class="points-value"><i class="fas fa-star"></i> <span id="userPoints">0</span></span>
+        <span class="level-badge" id="userLevel">Bronze</span>
+        <span class="streak-badge"><i class="fas fa-fire"></i> <span id="userStreak">0</span></span>
+      </div>
+      <div class="points-progress">
+        <div class="progress-bar" id="levelProgress" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <main class="main-content" id="mainContent">
+      <!-- HOME TAB -->
+      <section class="tab-content active" id="homeTab">
+        <div class="color-banner" id="colorBanner"></div>
+
+        <div class="news-slider" id="newsSlider" style="display:none;">
+          <div class="news-slider-content" id="newsSliderContent"></div>
+        </div>
+
+        <div class="section-card employee-of-month-card" id="employeeOfMonthCard" style="display:none;">
+          <div class="eom-content">
+            <div class="eom-badge"><i class="fas fa-crown"></i></div>
+            <div class="eom-info">
+              <span class="eom-label" data-i18n="safetyEmployeeOfMonth">Safety Employee of the Month</span>
+              <span class="eom-name" id="eomName">-</span>
+              <span class="eom-points"><i class="fas fa-star"></i> <span id="eomPoints">0</span> <span data-i18n="points">pts</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card kpi-primary" onclick="switchTab('observationsTab')">
+            <div class="kpi-icon"><i class="fas fa-eye"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="obsToday">--</span>
+              <span class="kpi-label" data-i18n="observationsToday">Observations Today</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-success" onclick="switchTab('permitsTab')">
+            <div class="kpi-icon"><i class="fas fa-clipboard-check"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="permitsToday">--</span>
+              <span class="kpi-label" data-i18n="permitsToday">Permits Today</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-warning" onclick="switchTab('equipmentTab')">
+            <div class="kpi-icon"><i class="fas fa-truck"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="equipmentTotal">--</span>
+              <span class="kpi-label" data-i18n="equipmentTotal">Equipment</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-danger" onclick="switchTab('incidentsTab')">
+            <div class="kpi-icon"><i class="fas fa-exclamation-circle"></i></div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="incidentsOpen">--</span>
+              <span class="kpi-label" data-i18n="openIncidents">Open Incidents</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card challenges-card">
+          <div class="section-header">
+            <h2><i class="fas fa-gamepad"></i> <span data-i18n="dailyChallenges">Daily Challenges</span></h2>
+            <span class="view-all" onclick="switchTab('challengesTab')" data-i18n="viewAll">View All</span>
+          </div>
+          <div class="section-body">
+            <div id="dailyChallengesList" class="challenges-mini-list">
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card leaderboard-card">
+          <div class="section-header">
+            <h2><i class="fas fa-trophy"></i> <span data-i18n="topPerformers">Top Performers</span></h2>
+            <span class="view-all" onclick="switchTab('leaderboardTab')" data-i18n="viewAll">View All</span>
+          </div>
+          <div class="section-body">
+            <div id="leaderboardMini" class="leaderboard-mini">
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <h2><i class="fas fa-chart-pie"></i> <span data-i18n="topAreasThisMonth">Top Areas This Month</span></h2>
+          </div>
+          <div class="section-body">
+            <div id="topAreasList" class="stats-list">
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card alerts-card" id="alertsCard" style="display:none;">
+          <div class="section-header">
+            <h2><i class="fas fa-bell"></i> <span data-i18n="alerts">Alerts</span></h2>
+          </div>
+          <div class="section-body">
+            <div id="alertsList" class="alerts-list"></div>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="quick-action-btn" onclick="showAddModal('observation')">
+            <i class="fas fa-eye"></i>
+            <span data-i18n="addObservation">Add Observation</span>
+          </button>
+          <button class="quick-action-btn" onclick="showAddModal('permit')">
+            <i class="fas fa-clipboard-check"></i>
+            <span data-i18n="addPermit">Add Permit</span>
+          </button>
+          <button class="quick-action-btn" onclick="showAddModal('incident')">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span data-i18n="reportIncident">Report Incident</span>
+          </button>
+          <button class="quick-action-btn" onclick="showAddModal('inspection')">
+            <i class="fas fa-tasks"></i>
+            <span data-i18n="dailyChecklist">Daily Checklist</span>
+          </button>
+          <button class="quick-action-btn" onclick="showAddModal('handover')">
+            <i class="fas fa-exchange-alt"></i>
+            <span data-i18n="shiftHandover">Shift Handover</span>
+          </button>
+          <button class="quick-action-btn" onclick="showAddModal('contractor')">
+            <i class="fas fa-user-plus"></i>
+            <span data-i18n="contractorSignIn">Contractor Sign-In</span>
+          </button>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <h2><i class="fas fa-phone-alt"></i> <span data-i18n="emergencyContacts">Emergency Contacts</span></h2>
+          </div>
+          <div class="section-body">
+            <div id="emergencyContactsGrid" class="emergency-contacts-grid">
+              <a href="tel:911" class="emergency-contact-card emergency">
+                <div class="emergency-contact-icon"><i class="fas fa-phone-volume"></i></div>
+                <div class="emergency-contact-name">Emergency</div>
+                <div class="emergency-contact-number">911</div>
+              </a>
+              <a href="tel:998" class="emergency-contact-card emergency">
+                <div class="emergency-contact-icon"><i class="fas fa-fire-extinguisher"></i></div>
+                <div class="emergency-contact-name">Fire Dept</div>
+                <div class="emergency-contact-number">998</div>
+              </a>
+              <a href="tel:997" class="emergency-contact-card medical">
+                <div class="emergency-contact-icon"><i class="fas fa-ambulance"></i></div>
+                <div class="emergency-contact-name">Ambulance</div>
+                <div class="emergency-contact-number">997</div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- OBSERVATIONS TAB -->
+      <section class="tab-content" id="observationsTab">
+        <div class="tab-header">
+          <h2 data-i18n="observations">Observations</h2>
+          <div class="header-actions-group">
+            <button class="btn-secondary" onclick="exportObservationsToPDF()" title="Export to PDF">
+              <i class="fas fa-file-pdf"></i>
+            </button>
+            <button class="btn-primary" onclick="showAddModal('observation')">
+              <i class="fas fa-plus"></i> <span data-i18n="addNew">Add New</span>
+            </button>
+          </div>
+        </div>
+        <div class="filters-bar">
+          <select id="obsFilterArea" class="filter-select">
+            <option value="" data-i18n="allAreas">All Areas</option>
+          </select>
+          <select id="obsFilterStatus" class="filter-select">
+            <option value="" data-i18n="allStatuses">All Status</option>
+            <option value="Open" data-i18n="open">Open</option>
+            <option value="Closed" data-i18n="closed">Closed</option>
+            <option value="In Progress" data-i18n="inProgress">In Progress</option>
+          </select>
+          <select id="obsFilterRisk" class="filter-select">
+            <option value="" data-i18n="allRisks">All Risk Levels</option>
+            <option value="High" data-i18n="high">High</option>
+            <option value="Medium" data-i18n="medium">Medium</option>
+            <option value="Low" data-i18n="low">Low</option>
+          </select>
+        </div>
+        <div id="observationsList" class="cards-list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="observationsEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-clipboard-list"></i>
+          <p data-i18n="noObservationsFound">No observations found</p>
+          <button class="btn-primary" onclick="showAddModal('observation')" data-i18n="addFirstObservation">Add First Observation</button>
+        </div>
+      </section>
+
+      <!-- PERMITS TAB -->
+      <section class="tab-content" id="permitsTab">
+        <div class="tab-header">
+          <h2 data-i18n="workPermits">Work Permits</h2>
+          <div class="header-actions-group">
+            <button class="btn-secondary" onclick="exportPermitsToPDF()" title="Export to PDF">
+              <i class="fas fa-file-pdf"></i>
+            </button>
+            <button class="btn-primary" onclick="showAddModal('permit')">
+              <i class="fas fa-plus"></i> <span data-i18n="addNew">Add New</span>
+            </button>
+          </div>
+        </div>
+        <div class="filters-bar">
+          <select id="permitFilterArea" class="filter-select">
+            <option value="" data-i18n="allAreas">All Areas</option>
+          </select>
+          <select id="permitFilterType" class="filter-select">
+            <option value="" data-i18n="allTypes">All Types</option>
+            <option value="Hot Work" data-i18n="hotWork">Hot Work</option>
+            <option value="Cold Work" data-i18n="coldWork">Cold Work</option>
+            <option value="Confined Space" data-i18n="confinedSpace">Confined Space</option>
+            <option value="Excavation" data-i18n="excavation">Excavation</option>
+            <option value="Electrical" data-i18n="electrical">Electrical</option>
+          </select>
+        </div>
+        <div id="permitsList" class="cards-list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="permitsEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-file-alt"></i>
+          <p data-i18n="noPermitsFound">No permits found</p>
+          <button class="btn-primary" onclick="showAddModal('permit')" data-i18n="addFirstPermit">Add First Permit</button>
+        </div>
+      </section>
+
+      <!-- EQUIPMENT TAB -->
+      <section class="tab-content" id="equipmentTab">
+        <div class="tab-header">
+          <h2 data-i18n="heavyEquipment">Heavy Equipment</h2>
+          <button class="btn-primary" onclick="showAddModal('equipment')">
+            <i class="fas fa-plus"></i> <span data-i18n="addNew">Add New</span>
+          </button>
+        </div>
+        <div class="filters-bar">
+          <select id="equipFilterArea" class="filter-select">
+            <option value="" data-i18n="allAreas">All Areas</option>
+          </select>
+          <select id="equipFilterType" class="filter-select">
+            <option value="" data-i18n="allTypes">All Types</option>
+            <option value="Crane" data-i18n="crane">Crane</option>
+            <option value="Forklift" data-i18n="forklift">Forklift</option>
+            <option value="Excavator" data-i18n="excavator">Excavator</option>
+            <option value="Loader" data-i18n="loader">Loader</option>
+          </select>
+        </div>
+        <div id="equipmentList" class="cards-list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="equipmentEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-truck"></i>
+          <p data-i18n="noEquipmentFound">No equipment found</p>
+          <button class="btn-primary" onclick="showAddModal('equipment')" data-i18n="addFirstEquipment">Add First Equipment</button>
+        </div>
+      </section>
+
+      <!-- INCIDENTS TAB -->
+      <section class="tab-content" id="incidentsTab">
+        <div class="tab-header">
+          <h2 data-i18n="incidents">Incidents & Near-Misses</h2>
+          <button class="btn-primary" onclick="showAddModal('incident')">
+            <i class="fas fa-plus"></i> <span data-i18n="report">Report</span>
+          </button>
+        </div>
+        <div class="filters-bar">
+          <select id="incidentFilterStatus" class="filter-select">
+            <option value="" data-i18n="allStatuses">All Status</option>
+            <option value="Open" data-i18n="open">Open</option>
+            <option value="Under Investigation" data-i18n="underInvestigation">Under Investigation</option>
+            <option value="Closed" data-i18n="closed">Closed</option>
+          </select>
+          <select id="incidentFilterSeverity" class="filter-select">
+            <option value="" data-i18n="allSeverity">All Severity</option>
+            <option value="Critical" data-i18n="critical">Critical</option>
+            <option value="Major" data-i18n="major">Major</option>
+            <option value="Minor" data-i18n="minor">Minor</option>
+            <option value="Near-Miss" data-i18n="nearMiss">Near-Miss</option>
+          </select>
+        </div>
+        <div id="incidentsList" class="cards-list">
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="incidentsEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-shield-alt"></i>
+          <p data-i18n="noIncidents">No incidents reported</p>
+        </div>
+      </section>
+
+      <!-- DAILY CHALLENGES TAB -->
+      <section class="tab-content" id="challengesTab">
+        <div class="tab-header">
+          <h2 data-i18n="dailyChallenges">Daily Challenges</h2>
+        </div>
+        <div class="challenges-intro">
+          <div class="challenges-progress">
+            <span id="challengesCompleted">0</span> / <span id="challengesTotal">5</span>
+            <span data-i18n="completed">completed</span>
+          </div>
+          <div class="challenges-points">
+            <i class="fas fa-star"></i>
+            <span data-i18n="earnUpTo">Earn up to</span> <span id="challengesMaxPoints">75</span> <span data-i18n="pointsToday">pts today!</span>
+          </div>
+        </div>
+        <div id="challengesList" class="challenges-list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </section>
+
+      <!-- LEADERBOARD TAB -->
+      <section class="tab-content" id="leaderboardTab">
+        <div class="tab-header">
+          <h2 data-i18n="leaderboard">Leaderboard</h2>
+        </div>
+        <div class="leaderboard-tabs">
+          <button class="leaderboard-tab active" data-period="monthly" data-i18n="thisMonth">This Month</button>
+          <button class="leaderboard-tab" data-period="all" data-i18n="allTime">All Time</button>
+        </div>
+        <div id="leaderboardFull" class="leaderboard-full">
+          <div class="skeleton-item"></div>
+          <div class="skeleton-item"></div>
+          <div class="skeleton-item"></div>
+        </div>
+      </section>
+
+      <!-- INSPECTIONS TAB -->
+      <section class="tab-content" id="inspectionsTab">
+        <div class="tab-header">
+          <h2 data-i18n="inspections">Daily Inspections</h2>
+          <button class="btn-primary" onclick="showAddModal('inspection')">
+            <i class="fas fa-plus"></i> <span data-i18n="startInspection">Start Inspection</span>
+          </button>
+        </div>
+        <div id="inspectionsList" class="cards-list">
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="inspectionsEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-clipboard-check"></i>
+          <p data-i18n="noInspections">No inspections today</p>
+          <button class="btn-primary" onclick="showAddModal('inspection')" data-i18n="startFirstInspection">Start First Inspection</button>
+        </div>
+      </section>
+
+      <!-- HANDOVERS TAB -->
+      <section class="tab-content" id="handoversTab">
+        <div class="tab-header">
+          <h2 data-i18n="shiftHandovers">Shift Handovers</h2>
+          <button class="btn-primary" onclick="showAddModal('handover')">
+            <i class="fas fa-plus"></i> <span data-i18n="createHandover">Create Handover</span>
+          </button>
+        </div>
+        <div id="handoversList" class="cards-list">
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="handoversEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-exchange-alt"></i>
+          <p data-i18n="noHandovers">No handover notes</p>
+        </div>
+      </section>
+
+      <!-- CONTRACTORS TAB -->
+      <section class="tab-content" id="contractorsTab">
+        <div class="tab-header">
+          <h2 data-i18n="contractorSignIn">Contractor Sign-In</h2>
+          <button class="btn-primary" onclick="showAddModal('contractor')">
+            <i class="fas fa-plus"></i> <span data-i18n="signIn">Sign In</span>
+          </button>
+        </div>
+        <div class="contractors-stats">
+          <div class="stat-item">
+            <span class="stat-value" id="contractorsOnSite">0</span>
+            <span class="stat-label" data-i18n="onSiteNow">On Site Now</span>
+          </div>
+        </div>
+        <div id="contractorsList" class="cards-list">
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="contractorsEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-users"></i>
+          <p data-i18n="noContractors">No contractors signed in today</p>
+        </div>
+      </section>
+
+      <!-- CERTIFICATIONS TAB -->
+      <section class="tab-content" id="certificationsTab">
+        <div class="tab-header">
+          <h2 data-i18n="certifications">Training & Certifications</h2>
+          <button class="btn-primary" onclick="showAddModal('certification')">
+            <i class="fas fa-plus"></i> <span data-i18n="addCertification">Add Certification</span>
+          </button>
+        </div>
+        <div class="cert-filters">
+          <button class="cert-filter active" data-filter="all" data-i18n="all">All</button>
+          <button class="cert-filter" data-filter="expiring" data-i18n="expiringSoon">Expiring Soon</button>
+        </div>
+        <div id="certificationsList" class="cards-list">
+          <div class="skeleton-card"></div>
+        </div>
+      </section>
+
+      <!-- ANALYTICS TAB -->
+      <section class="tab-content" id="analyticsTab">
+        <div class="tab-header">
+          <h2 data-i18n="analytics">Analytics Dashboard</h2>
+        </div>
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h3 data-i18n="observationsTrend">Observations Trend</h3>
+            <canvas id="obsChart"></canvas>
+          </div>
+          <div class="analytics-card">
+            <h3 data-i18n="riskBreakdown">Risk Breakdown</h3>
+            <canvas id="riskChart"></canvas>
+          </div>
+          <div class="analytics-card">
+            <h3 data-i18n="topCauses">Top Direct Causes</h3>
+            <div id="causesChart" class="causes-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIBRARY TAB -->
+      <section class="tab-content" id="libraryTab">
+        <div class="tab-header">
+          <h2 data-i18n="safetyLibrary">Safety Library</h2>
+        </div>
+        <div class="library-tabs">
+          <button class="library-tab active" data-library="tbt" data-i18n="tbt">TBT</button>
+          <button class="library-tab" data-library="jsa" data-i18n="jsa">JSA</button>
+          <button class="library-tab" data-library="csm" data-i18n="csm">CSM</button>
+        </div>
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="librarySearch" data-i18n-placeholder="searchDocuments" placeholder="Search documents...">
+        </div>
+        <div id="libraryList" class="library-list">
+          <div class="skeleton-item"></div>
+          <div class="skeleton-item"></div>
+        </div>
+      </section>
+
+      <!-- TOOLS TAB -->
+      <section class="tab-content" id="toolsTab">
+        <div class="tab-header">
+          <h2 data-i18n="tools">Safety Tools</h2>
+        </div>
+        <div class="tools-grid">
+          <button class="tool-card" onclick="showRiskMatrix()">
+            <i class="fas fa-th"></i>
+            <span data-i18n="riskMatrix">Risk Matrix</span>
+          </button>
+          <button class="tool-card" onclick="showGPSLocation()">
+            <i class="fas fa-map-marker-alt"></i>
+            <span data-i18n="gpsLocation">GPS Location</span>
+          </button>
+          <button class="tool-card" onclick="showEmergencyProcedures()">
+            <i class="fas fa-first-aid"></i>
+            <span data-i18n="emergencyProcedures">Emergency Procedures</span>
+          </button>
+          <button class="tool-card" onclick="showColorCode()">
+            <i class="fas fa-palette"></i>
+            <span data-i18n="colorCodeTitle">Month Color Code</span>
+          </button>
+          <button class="tool-card" onclick="switchTab('analyticsTab')">
+            <i class="fas fa-chart-bar"></i>
+            <span data-i18n="analytics">Analytics</span>
+          </button>
+          <button class="tool-card" onclick="switchTab('certificationsTab')">
+            <i class="fas fa-certificate"></i>
+            <span data-i18n="certifications">Certifications</span>
+          </button>
+          <button class="tool-card" onclick="switchTab('contractorsTab')">
+            <i class="fas fa-id-card"></i>
+            <span data-i18n="contractorSignIn">Contractor Sign-In</span>
+          </button>
+          <button class="tool-card" onclick="showWeather()">
+            <i class="fas fa-cloud-sun"></i>
+            <span data-i18n="weather">Weather</span>
+          </button>
+          <button class="tool-card" onclick="switchTab('responsibilitiesTab')">
+            <i class="fas fa-user-shield"></i>
+            <span data-i18n="safetyResponsibilities">Responsibilities</span>
+          </button>
+          <button class="tool-card" onclick="switchTab('settingsTab')">
+            <i class="fas fa-cog"></i>
+            <span data-i18n="settings">Settings</span>
+          </button>
+          <button class="tool-card" onclick="switchTab('aboutTab')">
+            <i class="fas fa-info-circle"></i>
+            <span data-i18n="about">About</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- SETTINGS TAB -->
+      <section class="tab-content" id="settingsTab">
+        <div class="tab-header">
+          <h2 data-i18n="settings">Settings</h2>
+        </div>
+        <div class="settings-list">
+          <div class="settings-group">
+            <h3 data-i18n="language">Language</h3>
+            <div class="language-options">
+              <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">
+                <span class="lang-flag">EN</span>
+                <span>English</span>
+              </button>
+              <button class="lang-btn" data-lang="ar" onclick="setLanguage('ar')">
+                <span class="lang-flag">AR</span>
+                <span>العربية</span>
+              </button>
+              <button class="lang-btn" data-lang="ur" onclick="setLanguage('ur')">
+                <span class="lang-flag">UR</span>
+                <span>اردو</span>
+              </button>
+            </div>
+          </div>
+          <div class="settings-group">
+            <h3 data-i18n="theme">Theme</h3>
+            <div class="theme-toggle-setting">
+              <span data-i18n="lightMode">Light Mode</span>
+              <label class="switch">
+                <input type="checkbox" id="themeSwitch" onchange="toggleTheme()">
+                <span class="slider"></span>
+              </label>
+              <span data-i18n="darkMode">Dark Mode</span>
+            </div>
+          </div>
+          <div class="settings-group">
+            <h3 data-i18n="currentColorCode">Current Month Color Code</h3>
+            <div id="currentColorDisplay" class="current-color-display"></div>
+          </div>
+          <div class="settings-group" id="adminSection" style="display:none;">
+            <h3 data-i18n="adminTools">Admin Tools</h3>
+            <button class="btn-secondary" onclick="showAdminPanel()">
+              <i class="fas fa-cog"></i> <span data-i18n="manageContent">Manage Content</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESPONSIBILITIES TAB -->
+      <section class="tab-content" id="responsibilitiesTab">
+        <div class="tab-header">
+          <h2 data-i18n="safetyResponsibilities">Safety Responsibilities</h2>
+        </div>
+        <div id="responsibilitiesContent" class="responsibilities-content"></div>
+      </section>
+
+      <!-- ABOUT TAB -->
+      <section class="tab-content" id="aboutTab">
+        <div class="tab-header">
+          <h2 data-i18n="about">About</h2>
+        </div>
+        <div class="about-content">
+          <div class="about-logo">
+            <img src="/img/CAT.jpeg" alt="CAT Logo" onerror="this.style.display='none'">
+          </div>
+          <h1 class="about-title">Safety Observer Pro</h1>
+          <p class="about-version">Version 3.0.0</p>
+          
+          <div class="about-section">
+            <h3 data-i18n="projectInfo">Project Information</h3>
+            <div class="about-info-grid">
+              <div class="about-info-item">
+                <i class="fas fa-user"></i>
+                <div>
+                  <label data-i18n="developer">Developer</label>
+                  <span>Abdulrahman Alanazi [8222802]</span>
+                </div>
+              </div>
+              <div class="about-info-item">
+                <i class="fas fa-user-tie"></i>
+                <div>
+                  <label data-i18n="supervisor">Supervisor</label>
+                  <span>Abdullah Alkaluf [8230855]</span>
+                </div>
+              </div>
+              <div class="about-info-item">
+                <i class="fas fa-building"></i>
+                <div>
+                  <label data-i18n="organization">Organization</label>
+                  <span>Saudi Safety Group (CAT Project)</span>
+                </div>
+              </div>
+              <div class="about-info-item">
+                <i class="fas fa-envelope"></i>
+                <div>
+                  <label data-i18n="contact">Contact</label>
+                  <a href="mailto:Catproject404@gmail.com">Catproject404@gmail.com</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-section">
+            <h3 data-i18n="colorCodeTitle">Monthly Color Code System</h3>
+            <div class="color-code-grid">
+              <div class="color-code-item color-green">
+                <span class="color-months" data-i18n="janMaySep">Jan, May, Sep</span>
+                <span class="color-name" data-i18n="colorGreen">Green</span>
+              </div>
+              <div class="color-code-item color-red">
+                <span class="color-months" data-i18n="febJunOct">Feb, Jun, Oct</span>
+                <span class="color-name" data-i18n="colorRed">Red</span>
+              </div>
+              <div class="color-code-item color-blue">
+                <span class="color-months" data-i18n="marJulNov">Mar, Jul, Nov</span>
+                <span class="color-name" data-i18n="colorBlue">Blue</span>
+              </div>
+              <div class="color-code-item color-yellow">
+                <span class="color-months" data-i18n="aprAugDec">Apr, Aug, Dec</span>
+                <span class="color-name" data-i18n="colorYellow">Yellow</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROFILE TAB -->
+      <section class="tab-content" id="profileTab">
+        <div class="tab-header">
+          <h2 data-i18n="profile">My Profile</h2>
+        </div>
+        <div id="profileContent" class="profile-content">
+          <div class="profile-header-card">
+            <div class="profile-avatar" id="profileAvatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <h2 id="profileName">-</h2>
+            <p id="profilePosition">-</p>
+            <div class="profile-level">
+              <span class="level-badge large" id="profileLevel">Bronze</span>
+            </div>
+          </div>
+          <div class="profile-stats-grid">
+            <div class="profile-stat">
+              <span class="stat-value" id="profilePoints">0</span>
+              <span class="stat-label" data-i18n="totalPoints">Total Points</span>
+            </div>
+            <div class="profile-stat">
+              <span class="stat-value" id="profileStreak">0</span>
+              <span class="stat-label" data-i18n="dayStreak">Day Streak</span>
+            </div>
+            <div class="profile-stat">
+              <span class="stat-value" id="profileBadges">0</span>
+              <span class="stat-label" data-i18n="badges">Badges</span>
+            </div>
+          </div>
+          <div class="profile-badges-section">
+            <h3 data-i18n="myBadges">My Badges</h3>
+            <div id="profileBadgesList" class="badges-grid"></div>
+          </div>
+          <div class="profile-activity-section">
+            <h3 data-i18n="recentActivity">Recent Activity</h3>
+            <div id="profileActivityList" class="activity-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="homeTab">
+        <i class="fas fa-home"></i>
+        <span data-i18n="home">Home</span>
+      </button>
+      <button class="nav-item" data-tab="observationsTab">
+        <i class="fas fa-eye"></i>
+        <span data-i18n="observe">Observe</span>
+      </button>
+      <button class="nav-item" data-tab="permitsTab">
+        <i class="fas fa-clipboard-check"></i>
+        <span data-i18n="permits">Permits</span>
+      </button>
+      <button class="nav-item" data-tab="equipmentTab">
+        <i class="fas fa-truck"></i>
+        <span data-i18n="equipment">Equipment</span>
+      </button>
+      <button class="nav-item" data-tab="toolsTab">
+        <i class="fas fa-th-large"></i>
+        <span data-i18n="more">More</span>
+      </button>
+    </nav>
+
+    <button class="fab" id="fabAdd" onclick="showQuickActions()">
+      <i class="fas fa-plus"></i>
+    </button>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="addModal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Add Observation</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="detailModalOverlay">
+    <div class="modal modal-large" id="detailModal">
+      <div class="modal-header">
+        <h3 id="detailModalTitle">Details</h3>
+        <button class="modal-close" onclick="closeDetailModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="detailModalBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="loginModalOverlay">
+    <div class="modal" id="loginModal">
+      <div class="modal-header">
+        <h3 data-i18n="login">Login</h3>
+      </div>
+      <div class="modal-body">
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label data-i18n="employeeId">Employee ID</label>
+            <input type="text" id="loginEmployeeId" required placeholder="e.g., 8222802">
+          </div>
+          <div class="form-group">
+            <label data-i18n="password">Password</label>
+            <input type="password" id="loginPassword" required>
+          </div>
+          <button type="submit" class="btn-primary btn-block" data-i18n="login">Login</button>
+          <p class="login-register-link">
+            <span data-i18n="noAccount">Don't have an account?</span>
+            <a href="#" onclick="showRegisterForm()" data-i18n="register">Register</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-actions-overlay" id="quickActionsOverlay" style="display:none;">
+    <div class="quick-actions-menu">
+      <button class="quick-action-item" onclick="showAddModal('observation'); hideQuickActions();">
+        <i class="fas fa-eye"></i>
+        <span data-i18n="addObservation">Add Observation</span>
+      </button>
+      <button class="quick-action-item" onclick="showAddModal('permit'); hideQuickActions();">
+        <i class="fas fa-clipboard-check"></i>
+        <span data-i18n="addPermit">Add Permit</span>
+      </button>
+      <button class="quick-action-item" onclick="showAddModal('incident'); hideQuickActions();">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span data-i18n="reportIncident">Report Incident</span>
+      </button>
+      <button class="quick-action-item" onclick="showAddModal('inspection'); hideQuickActions();">
+        <i class="fas fa-tasks"></i>
+        <span data-i18n="dailyChecklist">Daily Checklist</span>
+      </button>
+      <button class="quick-action-close" onclick="hideQuickActions()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-container">
+      <div class="search-header">
+        <i class="fas fa-search"></i>
+        <input type="text" id="globalSearch" data-i18n-placeholder="searchPlaceholder" placeholder="Search observations, permits, equipment...">
+        <button class="search-close" onclick="closeSearch()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="search-results" id="searchResults">
+        <p class="search-hint" data-i18n="startTypingToSearch">Start typing to search...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage"></span>
+  </div>
+
+  <div class="badge-popup" id="badgePopup" style="display:none;">
+    <div class="badge-popup-content">
+      <div class="badge-popup-icon" id="badgePopupIcon"></div>
+      <h3 data-i18n="badgeEarned">Badge Earned!</h3>
+      <p id="badgePopupName"></p>
+      <button class="btn-primary" onclick="closeBadgePopup()" data-i18n="awesome">Awesome!</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
