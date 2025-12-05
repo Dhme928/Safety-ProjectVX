@@ -1,0 +1,45 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Replit
+.cache/
+.upm/
+.config/
+.breakpoints
+
+# Uploads (keep folder structure but ignore files)
+uploads/*
+!uploads/.gitkeep
+
+# Python (if any)
+__pycache__/
+*.py[cod]
+venv/
